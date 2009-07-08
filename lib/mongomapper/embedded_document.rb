@@ -55,7 +55,7 @@ module MongoMapper
         if key.options[:required]
           validates_presence_of(attribute)
         end
-        
+
         if key.options[:unique]
           validates_uniqueness_of(attribute)
         end
@@ -88,6 +88,12 @@ module MongoMapper
       def initialize(attrs={})
         unless attrs.nil?
           initialize_associations(attrs)
+
+          if id = (attrs.delete("id") || attrs.delete(:id))
+            @use_custom_id = true
+            attrs["_id"] = id
+          end
+
           self.attributes = attrs
         end
       end
