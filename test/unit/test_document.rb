@@ -37,12 +37,12 @@ class DocumentTest < Test::Unit::TestCase
       end
       another_document.database.should == MongoMapper.database
     end
-    
+
     should "default collection name to class name tableized" do
       class Item
         include MongoMapper::Document
       end
-      
+
       Item.collection.should be_instance_of(XGen::Mongo::Driver::Collection)
       Item.collection.name.should == 'items'
     end
@@ -52,8 +52,24 @@ class DocumentTest < Test::Unit::TestCase
       @document.collection.should be_instance_of(XGen::Mongo::Driver::Collection)
       @document.collection.name.should == 'foobar'
     end
+
+    should "append extra modules" do
+      module MMPlugin
+        def hello_world
+          "hello, world"
+        end
+      end
+      MongoMapper::Document.append_inclusions MMPlugin
+
+      @document = Class.new do
+        include MongoMapper::Document
+      end
+      doc = @document.new
+      doc.should respond_to(:hello_world)
+      doc.hello_world.should == "hello, world"
+    end
   end # Document class
-  
+
   context "Documents that inherit from other documents" do
     should "default collection to inherited class" do
       Message.collection.name.should == 'messages'
@@ -61,7 +77,7 @@ class DocumentTest < Test::Unit::TestCase
       Exit.collection.name.should    == 'messages'
       Chat.collection.name.should    == 'messages'
     end
-    
+
     should "track subclasses" do
       Message.subclasses.should == [Enter, Exit, Chat]
     end
@@ -103,7 +119,7 @@ class DocumentTest < Test::Unit::TestCase
         @document.new.new?.should be(true)
       end
     end
-    
+
     context "equality" do
       should "be equal if id and class are the same" do
         (@document.new('_id' => 1) == @document.new('_id' => 1)).should be(true)

@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["John Nunemaker"]
-  s.date = %q{2009-07-28}
+  s.date = %q{2009-08-04}
   s.default_executable = %q{mmconsole}
   s.email = %q{nunemaker@gmail.com}
   s.executables = ["mmconsole"]
@@ -24,12 +24,13 @@ Gem::Specification.new do |s|
      "bin/mmconsole",
      "lib/mongomapper.rb",
      "lib/mongomapper/associations.rb",
-     "lib/mongomapper/associations/array_proxy.rb",
      "lib/mongomapper/associations/base.rb",
      "lib/mongomapper/associations/belongs_to_polymorphic_proxy.rb",
      "lib/mongomapper/associations/belongs_to_proxy.rb",
+     "lib/mongomapper/associations/many_documents_proxy.rb",
      "lib/mongomapper/associations/many_embedded_polymorphic_proxy.rb",
      "lib/mongomapper/associations/many_embedded_proxy.rb",
+     "lib/mongomapper/associations/many_polymorphic_proxy.rb",
      "lib/mongomapper/associations/many_proxy.rb",
      "lib/mongomapper/associations/proxy.rb",
      "lib/mongomapper/callbacks.rb",
@@ -47,6 +48,12 @@ Gem::Specification.new do |s|
      "lib/mongomapper/validations.rb",
      "mongomapper.gemspec",
      "test/NOTE_ON_TESTING",
+     "test/functional/associations/test_belongs_to_polymorphic_proxy.rb",
+     "test/functional/associations/test_belongs_to_proxy.rb",
+     "test/functional/associations/test_many_embedded_polymorphic_proxy.rb",
+     "test/functional/associations/test_many_embedded_proxy.rb",
+     "test/functional/associations/test_many_polymorphic_proxy.rb",
+     "test/functional/associations/test_many_proxy.rb",
      "test/functional/test_associations.rb",
      "test/functional/test_callbacks.rb",
      "test/functional/test_document.rb",
@@ -69,40 +76,45 @@ Gem::Specification.new do |s|
      "test/unit/test_serializations.rb",
      "test/unit/test_validations.rb"
   ]
-  s.has_rdoc = true
   s.homepage = %q{http://github.com/jnunemaker/mongomapper}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{mongomapper}
-  s.rubygems_version = %q{1.3.1}
+  s.rubygems_version = %q{1.3.5}
   s.summary = %q{Awesome gem for modeling your domain and storing it in mongo}
   s.test_files = [
-    "test/functional/test_associations.rb",
+    "test/unit/test_embedded_document.rb",
+     "test/unit/test_association_base.rb",
+     "test/unit/test_mongo_id.rb",
+     "test/unit/test_serializations.rb",
+     "test/unit/test_key.rb",
+     "test/unit/serializers/test_json_serializer.rb",
+     "test/unit/test_mongomapper.rb",
+     "test/unit/test_finder_options.rb",
+     "test/unit/test_observing.rb",
+     "test/unit/test_rails_compatibility.rb",
+     "test/unit/test_validations.rb",
+     "test/unit/test_document.rb",
+     "test/unit/test_pagination.rb",
+     "test/test_helper.rb",
+     "test/functional/test_associations.rb",
+     "test/functional/associations/test_belongs_to_proxy.rb",
+     "test/functional/associations/test_many_proxy.rb",
+     "test/functional/associations/test_many_embedded_proxy.rb",
+     "test/functional/associations/test_many_embedded_polymorphic_proxy.rb",
+     "test/functional/associations/test_many_polymorphic_proxy.rb",
+     "test/functional/associations/test_belongs_to_polymorphic_proxy.rb",
      "test/functional/test_callbacks.rb",
-     "test/functional/test_document.rb",
-     "test/functional/test_pagination.rb",
      "test/functional/test_rails_compatibility.rb",
      "test/functional/test_validations.rb",
-     "test/models.rb",
-     "test/test_helper.rb",
-     "test/unit/serializers/test_json_serializer.rb",
-     "test/unit/test_association_base.rb",
-     "test/unit/test_document.rb",
-     "test/unit/test_embedded_document.rb",
-     "test/unit/test_finder_options.rb",
-     "test/unit/test_key.rb",
-     "test/unit/test_mongo_id.rb",
-     "test/unit/test_mongomapper.rb",
-     "test/unit/test_observing.rb",
-     "test/unit/test_pagination.rb",
-     "test/unit/test_rails_compatibility.rb",
-     "test/unit/test_serializations.rb",
-     "test/unit/test_validations.rb"
+     "test/functional/test_document.rb",
+     "test/functional/test_pagination.rb",
+     "test/models.rb"
   ]
 
   if s.respond_to? :specification_version then
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
-    s.specification_version = 2
+    s.specification_version = 3
 
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<activesupport>, [">= 0"])
