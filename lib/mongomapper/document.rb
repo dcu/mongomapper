@@ -242,6 +242,8 @@ module MongoMapper
       end
 
       def destroy
+        return if frozen?
+
         criteria = FinderOptions.to_mongo_criteria(:_id => id)
         collection.remove(criteria) unless new?
         freeze
