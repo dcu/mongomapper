@@ -6,7 +6,7 @@ module MongoMapper
       def initialize(type, name, options = {})
         @type, @name, @options = type, name, options
       end
-      
+
       def class_name
         @class_name ||= begin
           if cn = options[:class_name]
@@ -18,35 +18,39 @@ module MongoMapper
           end
         end
       end
-      
+
       def klass
         @klass ||= class_name.constantize
       end
-      
+
       def many?
         @many_type ||= @type == :many
       end
-      
+
       def belongs_to?
         @belongs_to_type ||= @type == :belongs_to
       end
-      
+
       def polymorphic?
         !!@options[:polymorphic]
       end
-      
+
+      def through?
+        !!@options[:through]
+      end
+
       def type_key_name
         @type_key_name ||= many? ? '_type' : "#{name}_type"
       end
-      
+
       def foreign_key
         @options[:foreign_key] || "#{name}_id"
       end
-      
+
       def ivar
         @ivar ||= "@_#{name}"
       end
-      
+
       def embeddable?
         many? && klass.embeddable?
       end
@@ -55,9 +59,17 @@ module MongoMapper
         @proxy_class ||= begin
           if many?
             if self.klass.embeddable?
+              raise ArgumentError, "many :through is not supported for embedded documents" if through?
+
               polymorphic? ? ManyEmbeddedPolymorphicProxy : ManyEmbeddedProxy
             else
-              polymorphic? ? ManyPolymorphicProxy : ManyProxy
+              if polymorphic?
+                ManyPolymorphicProxy
+              elsif through?
+                ManyThroughProxy
+              else
+                ManyProxy
+              end
             end
           else
             polymorphic? ? BelongsToPolymorphicProxy : BelongsToProxy
