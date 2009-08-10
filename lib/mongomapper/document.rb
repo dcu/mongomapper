@@ -137,14 +137,14 @@ module MongoMapper
         end
         @collection
       end
-      
+
       def timestamps!
         key :created_at, Time
         key :updated_at, Time
-        
+
         class_eval { before_save :update_timestamps }
       end
-      
+
       def validates_uniqueness_of(*args)
         add_validations(args, MongoMapper::Validations::ValidatesUniquenessOf)
       end
@@ -156,16 +156,16 @@ module MongoMapper
       def validates_inclusion_of(*args)
         add_validations(args, MongoMapper::Validations::ValidatesInclusionOf)
       end
-      
+
       protected
         def method_missing(method, *args)
           finder = DynamicFinder.new(self, method)
-          
+
           if finder.valid?
             meta_def(finder.options[:method]) do |*args|
               find_with_args(args, finder.options)
             end
-            
+
             send(finder.options[:method], *args)
           else
             super
@@ -192,7 +192,7 @@ module MongoMapper
 
         def invert_order_clause(options)
           return '$natural desc' unless options[:order]
-          options[:order].split(',').map do |order_segment| 
+          options[:order].split(',').map do |order_segment|
             if order_segment =~ /\sasc/i
               order_segment.sub /\sasc/i, ' desc'
             elsif order_segment =~ /\sdesc/i
@@ -232,22 +232,22 @@ module MongoMapper
               find_some(ids, options)
           end
         end
-        
+
         def find_with_args(args, options)
           attributes,  = {}
           find_options = args.extract_options!.deep_merge(:conditions => attributes)
-          
+
           options[:attribute_names].each_with_index do |attr, index|
             attributes[attr] = args[index]
           end
 
           result = find(options[:finder], find_options)
-          
+
           if result.nil?
             if options[:bang]
               raise DocumentNotFound, "Couldn't find Document with #{attributes.inspect} in collection named #{collection.name}"
             end
-            
+
             if options[:instantiator]
               self.send(options[:instantiator], attributes)
             end
@@ -317,7 +317,7 @@ module MongoMapper
         assign_id
         save_to_collection
       end
-      
+
       def assign_id
         if read_attribute(:_id).blank?
           write_attribute(:_id, XGen::Mongo::Driver::ObjectID.new.to_s)
@@ -339,7 +339,7 @@ module MongoMapper
         write_attribute('created_at', now) if new?
         write_attribute('updated_at', now)
       end
-      
+
       def clear_custom_id_flag
         @using_custom_id = nil
       end

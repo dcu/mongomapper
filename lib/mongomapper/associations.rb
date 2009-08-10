@@ -36,35 +36,45 @@ module MongoMapper
         end
 
         def define_dependent_callback(association)
-          if association.options[:dependent]
-            if association.many?
-              define_dependent_callback_for_many(association)
-            elsif association.belongs_to?
-              define_dependent_callback_for_belongs_to(association)
-            end
+          if association.many?
+            define_callbacks_for_many(association)
+          elsif association.belongs_to?
+            define_callbacks_for_belongs_to(association)
           end
         end
 
-        def define_dependent_callback_for_many(association)
+        def define_callbacks_for_many(association)
           return if association.embeddable?
 
-          after_destroy do |doc|
-            case association.options[:dependent]
-            when :destroy
-              doc.get_proxy(association).destroy_all
-            when :delete_all
-              doc.get_proxy(association).delete_all
-            when :nullify
-              doc.get_proxy(association).nullify
+          if association.options[:dependent]
+            after_destroy do |doc|
+              case association.options[:dependent]
+              when :destroy
+                doc.get_proxy(association).destroy_all
+              when :delete_all
+                doc.get_proxy(association).delete_all
+              when :nullify
+                doc.get_proxy(association).nullify
+              end
+            end
+          end
+
+          if association.through?
+            after_create do |doc|
+              while proxy = doc.dirty_object_memberships.pop
+                proxy.save_dirty_memberships(doc)
+              end
             end
           end
         end
 
-        def define_dependent_callback_for_belongs_to(association)
-          after_destroy do |doc|
-            case association.options[:dependent]
-            when :destroy
-              doc.get_proxy(association).destroy
+        def define_callbacks_for_belongs_to(association)
+          if association.options[:dependent]
+            after_destroy do |doc|
+              case association.options[:dependent]
+              when :destroy
+                doc.get_proxy(association).destroy
+              end
             end
           end
         end

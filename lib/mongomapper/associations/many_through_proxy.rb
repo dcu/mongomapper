@@ -16,18 +16,19 @@ module MongoMapper
         end
       end
 
+      def save_dirty_memberships(doc)
+        while group_membership = dirty_memberships.pop
+          group_membership.send("#{through_field_id}=", doc.id)
+          group_membership.save
+        end
+      end
+
       private
       def apply_scope(doc)
-        field_id = through_field_id
-        options = { :field_id => through_field_id,
-                    :class => real_proxy.klass,
-                    :foreign_key => foreign_key,
-                    :owner_id => @owner.id
-                  }
+        group_membership = real_proxy.klass.new({foreign_key => @owner.id})
 
-        identifier = "_save_#{through_field}_membership"
-        save_membership_on_create(identifier, doc, options)
-
+        dirty_memberships.push(group_membership)
+        doc.dirty_object_memberships.push(self) # FIXME: is there a way to avoid this?
         doc
       end
 
@@ -47,17 +48,8 @@ module MongoMapper
         @through_field_id ||= "#{@association.class_name.underscore}_id"
       end
 
-      def save_membership_on_create(identifier, doc, options)
-        if !doc.class.after_save_callback_chain.detect{|c| c.method == identifier }
-          doc.class.send(:define_method, identifier, lambda {
-            puts "SAVE GROUP!!! #{options[:field_id]} = #{self.id}"
-            group_membership = options[:class].new({ options[:foreign_key] => options[:owner_id]})
-
-            group_membership.send("#{options[:field_id]}=", self.id)
-            group_membership.save
-          })
-          doc.class.after_save identifier
-        end
+      def dirty_memberships
+        @dirty_memberships ||= []
       end
     end
   end
