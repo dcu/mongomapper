@@ -7,13 +7,16 @@ module MongoMapper
         resultset = real_assoc.klass.find(*args << scoped_options(options))
         return if resultset.nil?
 
-        if resultset.kind_of?(Array)
-          resultset.map do |g|
-            g.send(through_field)
-          end
-        else
-          resultset.send(through_field)
-        end
+        real_resultset(resultset)
+      end
+
+      def paginate(options)
+        resultset = real_assoc.klass.paginate(scoped_options(options))
+        real_resultset(resultset)
+      end
+
+      def count(conditions={})
+        real_assoc.klass.count(conditions.deep_merge(scoped_conditions))
       end
 
       def save_dirty_memberships(doc)
@@ -50,6 +53,16 @@ module MongoMapper
 
       def dirty_memberships
         @dirty_memberships ||= []
+      end
+
+      def real_resultset(resultset)
+        if resultset.kind_of?(Array)
+          resultset.map do |g|
+            g.send(through_field)
+          end
+        else
+          resultset.send(through_field)
+        end
       end
     end
   end

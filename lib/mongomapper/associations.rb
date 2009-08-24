@@ -44,17 +44,17 @@ module MongoMapper
         end
 
         def define_callbacks_for_many(association)
-          return if association.embeddable?
-
           if association.options[:dependent]
             after_destroy do |doc|
-              case association.options[:dependent]
-              when :destroy
-                doc.get_proxy(association).destroy_all
-              when :delete_all
-                doc.get_proxy(association).delete_all
-              when :nullify
-                doc.get_proxy(association).nullify
+              unless association.embeddable?
+                case association.options[:dependent]
+                when :destroy
+                  doc.get_proxy(association).destroy_all
+                when :delete_all
+                  doc.get_proxy(association).delete_all
+                when :nullify
+                  doc.get_proxy(association).nullify
+                end
               end
             end
           end
