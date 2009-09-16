@@ -29,6 +29,29 @@ class AccountMembership
 end
 
 #
+class Post
+  include MongoMapper::Document
+
+  key :title, String
+  key :body, String
+
+  has_many :comments, :as => :commentable, :class_name => 'PostComment'
+
+  timestamps!
+end
+
+class PostComment
+  include MongoMapper::Document
+
+  key :username, String, :default => 'Anonymous'
+  key :body, String
+
+  key :commentable_id, String
+  key :commentable_type, String
+  belongs_to :commentable, :polymorphic => true
+
+  timestamps!
+end
 
 class Address
   include MongoMapper::EmbeddedDocument
@@ -48,6 +71,12 @@ class Message
   key :room_id, String
 
   belongs_to :room
+end
+
+class Answer
+  include MongoMapper::Document
+
+  key :body, String
 end
 
 class Enter < Message; end

@@ -1,6 +1,11 @@
 require 'test_helper'
 
 class JsonSerializationTest < Test::Unit::TestCase
+  class Tag
+    include MongoMapper::EmbeddedDocument
+    key :name, String
+  end
+  
   class Contact
     include MongoMapper::Document
     key :name, String
@@ -8,6 +13,8 @@ class JsonSerializationTest < Test::Unit::TestCase
     key :created_at, Time
     key :awesome, Boolean
     key :preferences, Hash
+    
+    many :tags, :class_name => 'JsonSerializationTest::Tag'
   end
   
   def setup
@@ -136,12 +143,20 @@ class JsonSerializationTest < Test::Unit::TestCase
     end
 
     should "allow attribute filtering with only" do
-      assert_equal %([{"name":"David"},{"name":"Mary"}]), @contacts.to_json(:only => :name)
+      json = @contacts.to_json(:only => :name)
+      assert_match %r{\{"name":"David"\}}, json
+      assert_match %r{\{"name":"Mary"\}}, json
     end
     
     should "allow attribute filtering with except" do
       json = @contacts.to_json(:except => [:name, :preferences, :awesome, :created_at, :updated_at])
-      assert_equal %([{"id":null,"age":39},{"id":null,"age":14}]), json
+      assert_match %r{"age":39},          json
+      assert_match %r{"age":14},          json
+      assert_no_match %r{"name":},        json
+      assert_no_match %r{"preferences":}, json
+      assert_no_match %r{"awesome":},     json
+      assert_no_match %r{"created_at":},  json
+      assert_no_match %r{"updated_at":},  json
     end
   end
   
@@ -150,8 +165,25 @@ class JsonSerializationTest < Test::Unit::TestCase
       1 => Contact.new(:name => 'David', :age => 39),
       2 => Contact.new(:name => 'Mary', :age => 14)
     }
-
-    assert_equal %({"1":{"name":"David"}}), contacts.to_json(:only => [1, :name])
+    json = contacts.to_json(:only => [1, :name])
+    assert_match %r{"1":},               json
+    assert_match %r{\{"name":"David"\}}, json
+    assert_no_match %r{"2":},            json
   end
   
+  should "include embedded attributes" do
+    contact = Contact.new(:name => 'John', :age => 27)
+    contact.tags = [Tag.new(:name => 'awesome'), Tag.new(:name => 'ruby')]
+    json = contact.to_json
+    assert_match %r{"tags":}, json
+    assert_match %r{"name":"awesome"}, json
+    assert_match %r{"name":"ruby"}, json
+  end
+  
+  should "include dynamic attributes" do
+    contact = Contact.new(:name => 'John', :age => 27, :foo => 'bar')
+    contact['smell'] = 'stinky'
+    json = contact.to_json
+    assert_match %r{"smell":"stinky"}, json
+  end
 end

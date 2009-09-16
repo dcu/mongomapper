@@ -39,8 +39,16 @@ module MongoMapper
         !!@options[:through]
       end
 
+      def as?
+        !!@options[:as]
+      end
+
       def type_key_name
-        @type_key_name ||= many? ? '_type' : "#{name}_type"
+        @type_key_name ||= many? ? '_type' : "#{as}_type"
+      end
+
+      def as
+        @options[:as] || self.name
       end
 
       def foreign_key
@@ -67,6 +75,8 @@ module MongoMapper
                 ManyPolymorphicProxy
               elsif through?
                 ManyThroughProxy
+              elsif as?
+                ManyDocumentsAsProxy
               else
                 ManyProxy
               end
